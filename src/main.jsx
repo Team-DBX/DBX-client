@@ -5,14 +5,15 @@ import App from "./App";
 import "./main.css";
 
 const router = createBrowserRouter([
-	{
-		path: "*",
-		element: <App />,
-	},
+  {
+    path: "*",
+    element: <App />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-	<React.StrictMode>
-		<RouterProvider router={router} />
-	</React.StrictMode>
+  <React.StrictMode>
+    <App />
+    <RouterProvider router={router} />
+  </React.StrictMode>
 );

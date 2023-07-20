@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .eslintcache
+
+firebase-config.js
+.env
