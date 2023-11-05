@@ -2,26 +2,22 @@ import { useState, useContext } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import axios from "axios";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
-import FileInput from "./FileInput";
-import UserContext from "../../../contexts/UserContext";
-import { InitialResponseContext } from "../../../contexts/InitialResponseContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import FileInput from "../FileInput";
+import UserContext from "../../../../contexts/UserContext";
 
-function ResourceForm() {
+function ResourceVersionForm() {
   const user = useContext(UserContext);
+  const { userEmail, categoriesId } = user;
   const navigate = useNavigate();
   const location = useLocation();
-  const { category } = useParams();
-  const { userEmail } = user;
-  const isInitialUser = location.state?.isInitialUser;
-  const { initialResponse } = useContext(InitialResponseContext);
-  const brandLogoCategory = initialResponse.find(
-    categories => categories.name === "BrandLogo"
-  );
-  const brandLogoCategoryId = brandLogoCategory ? brandLogoCategory._id : null;
+  const { categoryName } = location.state;
+  const { resourceId } = location.state;
+  const categoryId = categoriesId.find(item => item.name === categoryName)._id;
   const [previewSource, setPreviewSource] = useState(null);
   const [requiredLogoDetails, setRequiredLogoDetails] = useState({
     name: "",
+    version: "",
     description: "",
     default: null,
   });
@@ -90,16 +86,13 @@ function ResourceForm() {
     event.preventDefault();
 
     const MODES = ["default", "darkmode", "1.5x", "2x", "3x", "4x"];
-    const BASE_URL = isInitialUser
-      ? `${import.meta.env.VITE_SERVER_URL}/categories/${brandLogoCategoryId}`
-      : `${import.meta.env.VITE_SERVER_URL}/categories/${category}`;
     const date = new Date().toString();
     const postData = {
-      name: `${requiredLogoDetails.name}.svg`,
       detail: {
-        version: "1.0.0",
+        version: requiredLogoDetails.version,
         uploadDate: date,
         email: userEmail,
+        description: requiredLogoDetails.description,
       },
       files: [],
     };
@@ -128,11 +121,17 @@ function ResourceForm() {
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/resource`, postData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        `${
+          import.meta.env.VITE_SERVER_URL
+        }/categories/${categoryId}/resources/${resourceId}/version`,
+        postData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.status !== 201) {
         toast.error("Upload failed. Please try again.");
@@ -141,7 +140,7 @@ function ResourceForm() {
       }
 
       toast.success("Upload successful!");
-      navigate(`/resource-list/${brandLogoCategoryId}`);
+      navigate(`/resource-list/${categoryName}`);
     } catch (error) {
       toast.error("Error uploading data. Please try again.");
     }
@@ -152,7 +151,7 @@ function ResourceForm() {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 h-fit">
           <div>
-            <h2 className="text-lg font-bold">Brand logo</h2>
+            <h2 className="text-lg font-bold">{categoryName}</h2>
             {/* eslint-disable react/jsx-props-no-spreading */}
             <div
               {...getRootProps()}
@@ -173,12 +172,12 @@ function ResourceForm() {
             </p>
           </div>
           <div className="col-span-2 flex flex-col">
-            <h2 className="text-lg font-bold">Name</h2>
+            <h2 className="text-lg font-bold">Version</h2>
             <input
-              name="name"
+              name="version"
               className="items-center mb-5 border border-stone-800 rounded-md h-7 bg-transparent placeholder-stone-400 placeholder:text-xs"
               placeholder="Please write the log name of your brand"
-              value={requiredLogoDetails.name}
+              value={requiredLogoDetails.version}
               onChange={handleInputChange}
             />
             <h2 className="text-lg font-bold">Description</h2>
@@ -195,14 +194,16 @@ function ResourceForm() {
           </div>
         </div>
         <div className="mt-10">
-          {Object.keys(logoImagesByMode).map(mode => (
-            <FileInput
-              key={mode}
-              mode={mode}
-              handleFileChange={event => handleFileChange(event, mode)}
-              logoImageByMode={logoImagesByMode[mode]}
-            />
-          ))}
+          {categoryName === "BrandLogo"
+            ? Object.keys(logoImagesByMode).map(mode => (
+                <FileInput
+                  key={mode}
+                  mode={mode}
+                  handleFileChange={event => handleFileChange(event, mode)}
+                  logoImageByMode={logoImagesByMode[mode]}
+                />
+              ))
+            : null}
         </div>
         <button
           type="submit"
@@ -215,4 +216,4 @@ function ResourceForm() {
   );
 }
 
-export default ResourceForm;
+export default ResourceVersionForm;

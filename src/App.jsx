@@ -10,18 +10,38 @@ import {
 } from "firebase/auth";
 import axios from "axios";
 import UserContext from "../contexts/UserContext";
-// import useUser from "../hooks/useUser";
+import InitialContext from "../contexts/InitialResponseContext";
 import Header from "./components/Header";
 import Login from "./components/Login";
-import ResourceForm from "./components/ResourceForm";
+import InitialResourceForm from "./components/ResourceForms/InitialResourceForm";
 import ResourceList from "./components/ResourceList";
-import { InitialResponseProvider } from "../contexts/InitialResponseContext";
 import { auth } from "../config/firebase-config";
+import ResourceVersionForm from "./components/ResourceForms/ResourceVersionForm";
+import ResourceForm from "./components/ResourceForms/ResourceForm";
+import ResourceVersionList from "./components/ResourceVersionList";
 
 function App() {
   const [userData, setUserData] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [categoriesId, setCategoriesId] = useState([]);
+  const [initialResponse, setInitialResponse] = useState(null);
+  const [isInitialUser, setIsInitialUser] = useState(null);
+  const authenticate = getAuth();
+
+  function handleIsInitialuser(boolean) {
+    setIsInitialUser(boolean);
+  }
+
+  async function userAuthenticate(token, email) {
+    const response = await axios.post(
+      `${import.meta.env.VITE_SERVER_URL}/login`,
+      { idToken: token, email, login: false },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    setIsAdmin(response.data.isAdmin);
+  }
 
   async function handleGoogleLogin() {
     try {
@@ -29,11 +49,13 @@ function App() {
       const data = await signInWithPopup(auth, provider);
 
       setUserData(data._tokenResponse);
+      setUserEmail(data.user.email);
 
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/login`,
-        data._tokenResponse
+        { email: userEmail, idToken: data._tokenResponse.idToken, login: true }
       );
+
       setIsAdmin(response.data.isAdmin);
 
       return response.data;
@@ -52,13 +74,17 @@ function App() {
   }
 
   useEffect(() => {
-    const authenticate = getAuth();
-
     onAuthStateChanged(authenticate, user => {
       if (user) {
         setUserEmail(user.email);
+        const token = user.accessToken;
+
+        if (token) {
+          userAuthenticate(token, user.email);
+        }
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value = useMemo(
@@ -66,9 +92,18 @@ function App() {
       userData,
       userEmail,
       isAdmin,
+      categoriesId,
       handleGoogleLogin,
     }),
-    [userData, userEmail, isAdmin]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userData, userEmail, isAdmin, categoriesId]
+  );
+
+  const initialValue = useMemo(
+    () => ({
+      initialResponse,
+    }),
+    [initialResponse]
   );
 
   return (
@@ -76,16 +111,37 @@ function App() {
       <div className="relative bg-gradient-to-b from-stone-300 via-stone-300 to-black">
         <Header />
         <main className="flex items-center justify-center h-screen">
-          <InitialResponseProvider>
+          <InitialContext.Provider value={initialValue}>
             <Routes>
-              <Route path="/login" element={<Login />} />
+              <Route
+                path="/initial-resource-form"
+                element={<InitialResourceForm />}
+              />
               <Route path="/new-resource-form" element={<ResourceForm />} />
               <Route
+                path="/login"
+                element={
+                  <Login
+                    setInitialResponse={setInitialResponse}
+                    handleIsInitialuser={handleIsInitialuser}
+                    isInitialUser={isInitialUser}
+                  />
+                }
+              />
+              <Route
                 path="/resource-list/:category"
-                element={<ResourceList />}
+                element={<ResourceList setCategoriesId={setCategoriesId} />}
+              />
+              <Route
+                path="/new-resource-version-form"
+                element={<ResourceVersionForm />}
+              />
+              <Route
+                path="/resource-version-list"
+                element={<ResourceVersionList />}
               />
             </Routes>
-          </InitialResponseProvider>
+          </InitialContext.Provider>
         </main>
         <Toaster />
       </div>

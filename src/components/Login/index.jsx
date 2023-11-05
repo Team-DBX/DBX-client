@@ -1,16 +1,13 @@
+/* eslint-disable react/prop-types */
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import UserContext from "../../../contexts/UserContext";
-import { InitialResponseContext } from "../../../contexts/InitialResponseContext";
 
-function Login() {
+function Login({ setInitialResponse, handleIsInitialuser }) {
   const { handleGoogleLogin } = useContext(UserContext);
   const navigate = useNavigate();
-  const { initialResponse, setInitialResponse } = useContext(
-    InitialResponseContext
-  );
 
   async function handleLogin() {
     try {
@@ -20,9 +17,9 @@ function Login() {
         const response = await axios.post(
           `${import.meta.env.VITE_SERVER_URL}/initialSetting`
         );
-
+        handleIsInitialuser(true);
         setInitialResponse(response.data);
-        navigate("/new-resource-form", { state: { isInitialUser: true } });
+        navigate("/initial-resource-form", { state: { isInitialUser: true } });
 
         return;
       }
@@ -34,14 +31,7 @@ function Login() {
         return;
       }
 
-      const brandLogoCategory = initialResponse?.find(
-        category => category.name === "BrandLogo"
-      );
-      const brandLogoCategoryId = brandLogoCategory
-        ? brandLogoCategory._id
-        : null;
-
-      navigate(`/resource-list/${brandLogoCategoryId}`);
+      navigate(`/resource-list/BrandLogo`);
     } catch (err) {
       toast.error(err.message);
       navigate("/login");

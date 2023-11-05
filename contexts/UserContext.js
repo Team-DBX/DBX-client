@@ -4,6 +4,7 @@ const UserContext = React.createContext({
   userData: null,
   userEmail: null,
   isAdmin: false,
+  categoriesId: [],
   handleGoogleLogin: () => {},
 });
 

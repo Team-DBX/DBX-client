@@ -7,14 +7,16 @@ import ImageGrid from "./ImageGrid";
 import ControlPanel from "./ControlPanel";
 import UserContext from "../../../contexts/UserContext";
 
-function ResourceList() {
+// eslint-disable-next-line react/prop-types
+function ResourceList({ setCategoriesId }) {
   const user = useContext(UserContext);
-  const [categoriesId, setCategoriesId] = useState([]);
-  const { userEmail, isAdmin } = user;
+  const { userEmail, isAdmin, categoriesId } = user;
   const { category } = useParams();
   const [resourcesUrl, setResourcesUrl] = useState([]);
   const [resourcesData, setResourcesData] = useState([]);
   const [selectedImageData, setSelectedImageData] = useState(null);
+  const [selectedResourceId, setSelectedResourceId] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const navigate = useNavigate();
 
   async function getCategoriesId() {
@@ -26,18 +28,19 @@ function ResourceList() {
 
   useEffect(() => {
     getCategoriesId();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = useCallback(async () => {
     try {
-      const categoryId = categoriesId.find(item => item.name === category)._id;
+      const categoryId = categoriesId.find(item => item.name === category)?._id;
       const response = await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/categories/${categoryId}`
       );
       setResourcesUrl(response.data.categoryList.map(item => item.svgUrl));
       setResourcesData(response.data.categoryList);
     } catch (error) {
-      toast.error(
+      console.error(
         "There was an issue loading your data. Please try again later."
       );
     }
@@ -47,15 +50,25 @@ function ResourceList() {
     if (categoriesId) {
       fetchData();
     }
-  }, [fetchData, categoriesId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchData]);
 
   const handleCategoryChange = newCategory => {
     navigate(`/resource-list/${newCategory}`);
   };
 
   const handleImageSelect = async imageId => {
+    setSelectedResourceId(imageId);
+
+    if (imageId === null) {
+      setSelectedImageData(null);
+
+      return;
+    }
+
     try {
-      const categoryId = categoriesId.find(item => item.name === category)._id;
+      const categoryId = categoriesId.find(item => item.name === category)?._id;
+      setSelectedCategoryId(categoryId);
       const response = await axios.get(
         `${
           import.meta.env.VITE_SERVER_URL
@@ -81,9 +94,15 @@ function ResourceList() {
         data={resourcesData}
         onImageSelect={handleImageSelect}
         isAdmin={isAdmin}
-        category={category}
+        categoryName={category}
+        fetchData={fetchData}
       />
-      <ControlPanel email={userEmail} resourceData={selectedImageData} />
+      <ControlPanel
+        email={userEmail}
+        resourceData={selectedImageData}
+        categoryId={selectedCategoryId}
+        resourceId={selectedResourceId}
+      />
     </div>
   );
 }
