@@ -1,4 +1,4 @@
-import AWS from "aws-sdk";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { toast } from "react-hot-toast";
 import CopyLinkButton from "./CopyLinkButton";
 
@@ -27,16 +27,16 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
   const { categoryName, authorName, resourceName, uploadDate, version, files } =
     resourceData;
 
-  AWS.config.update({
-    accessKeyId: import.meta.env.VITE_S3_ACCESS_KEY_ID,
-    secretAccessKey: import.meta.env.VITE_S3_SECRET_ACCESS_KEY,
-  });
-
   function handleDownload(fileUrl) {
     const url = new URL(fileUrl);
     const fileKey = decodeURIComponent(url.pathname.substring(1));
-
-    const s3 = new AWS.S3();
+    const s3 = new S3Client({
+      region: "ap-northeast-2",
+      credentials: {
+        accessKeyId: import.meta.env.VITE_S3_ACCESS_KEY_ID,
+        secretAccessKey: import.meta.env.VITE_S3_SECRET_ACCESS_KEY,
+      },
+    });
     const params = {
       Bucket: "team-dbx",
       Key: fileKey,
@@ -58,18 +58,22 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
       document.body.removeChild(link);
     }
 
-    s3.getObject(params, (err, data) => {
-      if (err) {
+    async function getS3Object() {
+      try {
+        const command = new GetObjectCommand(params);
+        const data = await s3.send(command);
+        const dataBody = await data.Body.transformToByteArray();
+        const fileBlob = new Blob([dataBody], {
+          type: "application/octet-stream",
+        });
+
+        downloadBlob(fileBlob, url.pathname.split("/").pop());
+      } catch (err) {
         toast.error("File download failed.");
-
-        return;
       }
+    }
 
-      const fileBlob = new Blob([data.Body.toString()], {
-        type: "application/octet-stream",
-      });
-      downloadBlob(fileBlob, url.pathname.split("/").pop());
-    });
+    getS3Object();
   }
 
   return (
