@@ -40,14 +40,14 @@ function ResourceList({ setCategoriesId }) {
       setResourcesUrl(response.data.categoryList.map(item => item.svgUrl));
       setResourcesData(response.data.categoryList);
     } catch (error) {
-      console.error(
+      toast.error(
         "There was an issue loading your data. Please try again later."
       );
     }
   }, [category, categoriesId]);
 
   useEffect(() => {
-    if (categoriesId) {
+    if (categoriesId.length) {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
