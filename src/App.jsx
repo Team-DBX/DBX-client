@@ -1,6 +1,6 @@
 // import { useState } from "react";
 import { useState, useEffect, useMemo } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import {
   GoogleAuthProvider,
@@ -53,7 +53,11 @@ function App() {
 
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/login`,
-        { email: userEmail, idToken: data._tokenResponse.idToken, login: true }
+        {
+          email: data.user.email,
+          idToken: data._tokenResponse.idToken,
+          login: true,
+        }
       );
 
       setIsAdmin(response.data.isAdmin);
@@ -78,7 +82,6 @@ function App() {
       if (user) {
         setUserEmail(user.email);
         const token = user.accessToken;
-
         if (token) {
           userAuthenticate(token, user.email);
         }
@@ -113,6 +116,16 @@ function App() {
         <main className="flex items-center justify-center h-screen">
           <InitialContext.Provider value={initialValue}>
             <Routes>
+              <Route
+                path="/"
+                element={
+                  userEmail ? (
+                    <Navigate to="/resource-list/BrandLogo" />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
               <Route
                 path="/initial-resource-form"
                 element={<InitialResourceForm />}

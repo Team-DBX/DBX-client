@@ -1,22 +1,29 @@
 /* eslint-disable react/prop-types */
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import UserContext from "../../../contexts/UserContext";
 
 function Login({ setInitialResponse, handleIsInitialuser }) {
-  const { handleGoogleLogin } = useContext(UserContext);
+  const { handleGoogleLogin, userEmail } = useContext(UserContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (userEmail) {
+      navigate("/resource-list/BrandLogo");
+    }
+  }, [navigate, userEmail]);
 
   async function handleLogin() {
     try {
       const data = await handleGoogleLogin();
 
-      if (data?.isInitialUser) {
+      if (data.isInitialUser) {
         const response = await axios.post(
           `${import.meta.env.VITE_SERVER_URL}/initialSetting`
         );
+
         handleIsInitialuser(true);
         setInitialResponse(response.data);
         navigate("/initial-resource-form", { state: { isInitialUser: true } });
@@ -31,7 +38,7 @@ function Login({ setInitialResponse, handleIsInitialuser }) {
         return;
       }
 
-      navigate(`/resource-list/BrandLogo`);
+      navigate("/resource-list/BrandLogo");
     } catch (err) {
       toast.error(err.message);
       navigate("/login");
