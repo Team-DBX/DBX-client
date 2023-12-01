@@ -1,12 +1,11 @@
-// import { useState } from "react";
 import { useState, useEffect, useMemo } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  getAuth,
   onAuthStateChanged,
+  getAuth,
 } from "firebase/auth";
 import axios from "axios";
 import UserContext from "../contexts/UserContext";
@@ -27,7 +26,7 @@ function App() {
   const [categoriesId, setCategoriesId] = useState([]);
   const [initialResponse, setInitialResponse] = useState(null);
   const [isInitialUser, setIsInitialUser] = useState(null);
-  const authenticate = getAuth();
+  const navigate = useNavigate();
 
   function handleIsInitialuser(boolean) {
     setIsInitialUser(boolean);
@@ -65,6 +64,7 @@ function App() {
       return response.data;
     } catch (err) {
       setUserData(null);
+
       if (err.response && err.response.status === 401) {
         throw new Error("Unauthorized: Please check your login details");
       }
@@ -78,6 +78,8 @@ function App() {
   }
 
   useEffect(() => {
+    const authenticate = getAuth();
+
     onAuthStateChanged(authenticate, user => {
       if (user) {
         setUserEmail(user.email);
@@ -85,10 +87,11 @@ function App() {
         if (token) {
           userAuthenticate(token, user.email);
         }
+      } else {
+        navigate("/login");
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [navigate]);
 
   const value = useMemo(
     () => ({
@@ -98,7 +101,7 @@ function App() {
       categoriesId,
       handleGoogleLogin,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [userData, userEmail, isAdmin, categoriesId]
   );
 
