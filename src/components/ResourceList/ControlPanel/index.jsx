@@ -1,5 +1,6 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { toast } from "react-hot-toast";
+import { getAuth, signOut } from "firebase/auth";
 import CopyLinkButton from "./CopyLinkButton";
 
 // eslint-disable-next-line react/prop-types
@@ -7,11 +8,28 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
   const providedUrl = `${
     import.meta.env.VITE_SERVER_URL
   }/dbx/categories/${categoryId}/resources/${resourceId}`;
+
+  async function handleLogOut() {
+    const auth = getAuth();
+    try {
+      await signOut(auth);
+    } catch (error) {
+      toast.error("Logout failed");
+    }
+  }
+
   const controlPanelHeader = (
     <div className="flex items-center bg-stone-100 h-16 text-stone-500">
-      <div className="flex items-center ml-6">
-        <div className="w-8 h-8 rounded-md bg-green-400"> </div>
-        <p className="ml-4">{email}</p>
+      <div className="flex items-center ml-4">
+        <div className="w-6 h-6 rounded-md bg-green-400"> </div>
+        <p className="ml-1 text-base">{email}</p>
+        <button
+          className="hover:bg-stone-200 flex ml-2 rounded p-1 text-sm bg-gray-300"
+          type="button"
+          onClick={handleLogOut}
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
