@@ -6,6 +6,7 @@ import CategoryBar from "./CategoryBar";
 import ImageGrid from "./ImageGrid";
 import ControlPanel from "./ControlPanel";
 import UserContext from "../../../contexts/UserContext";
+import useGetData from "../../../hooks/useGetData";
 
 // eslint-disable-next-line react/prop-types
 function ResourceList({ setCategoriesId }) {
@@ -19,17 +20,15 @@ function ResourceList({ setCategoriesId }) {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const navigate = useNavigate();
 
-  async function getCategoriesId() {
-    const response = await axios.get(
-      `${import.meta.env.VITE_SERVER_URL}/categories`
-    );
-    setCategoriesId(response.data.categories);
-  }
+  const { value, fetchError } = useGetData(
+    `${import.meta.env.VITE_SERVER_URL}/categories`
+  );
 
-  useEffect(() => {
-    getCategoriesId();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  if (value.data?.categories) {
+    setCategoriesId(value.data.categories);
+  } else {
+    toast.error(fetchError);
+  }
 
   const fetchData = useCallback(async () => {
     try {
