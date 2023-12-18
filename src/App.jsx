@@ -27,7 +27,8 @@ function App() {
         navigate("/login");
       }
     });
-  }, [isLoggedIn, navigate, setUserCredentials]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, setUserCredentials]);
 
   return (
     <div className="relative bg-gradient-to-b from-stone-300 via-stone-300 to-black">

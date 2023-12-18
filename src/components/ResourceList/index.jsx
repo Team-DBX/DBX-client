@@ -26,7 +26,9 @@ function ResourceList() {
 
   if (value.data?.categories) {
     setInitialCategoryList(value.data.categories);
-  } else {
+  }
+
+  if (fetchError) {
     toast.error(fetchError);
   }
 
@@ -53,6 +55,7 @@ function ResourceList() {
   }, [category, categoryList]);
 
   const handleCategoryChange = newCategory => {
+    setSelectedCategoryId(newCategory);
     navigate(`/resource-list/${newCategory}`);
   };
 
