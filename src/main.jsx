@@ -3,11 +3,17 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./main.css";
+import { UserContextProvider } from "../contexts/UserContext";
+import { CategoryContextProvider } from "../contexts/CategoryContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <UserContextProvider>
+        <CategoryContextProvider>
+          <App />
+        </CategoryContextProvider>
+      </UserContextProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

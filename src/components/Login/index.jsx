@@ -1,19 +1,47 @@
 /* eslint-disable react/prop-types */
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import UserContext from "../../../contexts/UserContext";
+import CategoryContext from "../../../contexts/CategoryContext";
+import { auth } from "../../../config/firebase-config";
 
-function Login({ setInitialResponse, handleIsInitialuser }) {
-  const { handleGoogleLogin, userEmail } = useContext(UserContext);
+function Login() {
+  const { setUserCredentials } = useContext(UserContext);
+  const { setInitialCategoryList } = useContext(CategoryContext);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (userEmail) {
-      navigate("/resource-list/BrandLogo");
+  async function handleGoogleLogin() {
+    try {
+      const provider = new GoogleAuthProvider();
+      const data = await signInWithPopup(auth, provider);
+
+      setUserCredentials(data._tokenResponse, data.user.email);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/login`,
+        {
+          email: data.user.email,
+          idToken: data._tokenResponse.idToken,
+          login: true,
+        }
+      );
+
+      return response.data;
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        throw new Error("Unauthorized: Please check your login details");
+      }
+
+      if (err.response && err.response.status === 500) {
+        throw new Error("Server error: Please try again later");
+      }
+
+      throw new Error("An error occurred: Please try again");
     }
-  }, [navigate, userEmail]);
+  }
 
   async function handleLogin() {
     try {
@@ -24,8 +52,7 @@ function Login({ setInitialResponse, handleIsInitialuser }) {
           `${import.meta.env.VITE_SERVER_URL}/initialSetting`
         );
 
-        handleIsInitialuser(true);
-        setInitialResponse(response.data);
+        setInitialCategoryList(response.data);
         navigate("/initial-resource-form", { state: { isInitialUser: true } });
 
         return;

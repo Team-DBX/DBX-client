@@ -5,14 +5,15 @@ import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import FileInput from "../FileInput";
 import UserContext from "../../../../contexts/UserContext";
+import CategoryContext from "../../../../contexts/CategoryContext";
 
 function ResourceForm() {
-  const user = useContext(UserContext);
-  const { userEmail, categoriesId } = user;
+  const { userEmail } = useContext(UserContext);
+  const { categoryList } = useContext(CategoryContext);
   const navigate = useNavigate();
   const location = useLocation();
   const { categoryName } = location.state;
-  const categoryId = categoriesId.find(item => item.name === categoryName)._id;
+  const categoryId = categoryList.find(item => item.name === categoryName)._id;
   const [previewSource, setPreviewSource] = useState(null);
   const [requiredLogoDetails, setRequiredLogoDetails] = useState({
     name: "",

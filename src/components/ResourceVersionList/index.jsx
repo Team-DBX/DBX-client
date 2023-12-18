@@ -1,15 +1,14 @@
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
-import UserContext from "../../../contexts/UserContext";
+import CategoryContext from "../../../contexts/CategoryContext";
 
 function ResourceVersionList() {
-  const user = useContext(UserContext);
-  const { categoriesId } = user;
+  const { categoryList } = useContext(CategoryContext);
   const location = useLocation();
   const { categoryName } = location.state;
   const { resourceId } = location.state;
-  const categoryId = categoriesId.find(item => item.name === categoryName)._id;
+  const categoryId = categoryList.find(item => item.name === categoryName)._id;
   const [versionData, setVersionData] = useState([]);
 
   async function fetchData() {

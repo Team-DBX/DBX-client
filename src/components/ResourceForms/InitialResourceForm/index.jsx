@@ -5,15 +5,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import FileInput from "../FileInput";
 import UserContext from "../../../../contexts/UserContext";
-import InitialContext from "../../../../contexts/InitialResponseContext";
+import InitialContext from "../../../../contexts/CategoryContext";
 
 function ResourceForm() {
-  const user = useContext(UserContext);
-  const initial = useContext(InitialContext);
+  const { userEmail } = useContext(UserContext);
+  const { categoryList } = useContext(InitialContext);
   const navigate = useNavigate();
-  const { userEmail } = user;
-  const { initialResponse } = initial;
-  const brandLogoCategory = initialResponse.find(
+  const brandLogoCategory = categoryList.find(
     categories => categories.name === "BrandLogo"
   );
   const brandLogoCategoryId = brandLogoCategory ? brandLogoCategory._id : null;

@@ -7,11 +7,12 @@ import ImageGrid from "./ImageGrid";
 import ControlPanel from "./ControlPanel";
 import UserContext from "../../../contexts/UserContext";
 import useGetData from "../../../hooks/useGetData";
+import CategoryContext from "../../../contexts/CategoryContext";
 
 // eslint-disable-next-line react/prop-types
-function ResourceList({ setCategoriesId }) {
-  const user = useContext(UserContext);
-  const { userEmail, isAdmin, categoriesId } = user;
+function ResourceList() {
+  const { userEmail } = useContext(UserContext);
+  const { categoryList, setInitialCategoryList } = useContext(CategoryContext);
   const { category } = useParams();
   const [resourcesUrl, setResourcesUrl] = useState([]);
   const [resourcesData, setResourcesData] = useState([]);
@@ -19,20 +20,19 @@ function ResourceList({ setCategoriesId }) {
   const [selectedResourceId, setSelectedResourceId] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const navigate = useNavigate();
-
   const { value, fetchError } = useGetData(
     `${import.meta.env.VITE_SERVER_URL}/categories`
   );
 
   if (value.data?.categories) {
-    setCategoriesId(value.data.categories);
+    setInitialCategoryList(value.data.categories);
   } else {
     toast.error(fetchError);
   }
 
   const fetchData = useCallback(async () => {
     try {
-      const categoryId = categoriesId.find(item => item.name === category)?._id;
+      const categoryId = categoryList.find(item => item.name === category)?._id;
       const response = await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/categories/${categoryId}`
       );
@@ -43,14 +43,14 @@ function ResourceList({ setCategoriesId }) {
         "There was an issue loading your data. Please try again later."
       );
     }
-  }, [category, categoriesId]);
+  }, [category, categoryList]);
 
   useEffect(() => {
-    if (categoriesId.length) {
+    if (categoryList.length) {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchData]);
+  }, [category, categoryList]);
 
   const handleCategoryChange = newCategory => {
     navigate(`/resource-list/${newCategory}`);
@@ -66,7 +66,7 @@ function ResourceList({ setCategoriesId }) {
     }
 
     try {
-      const categoryId = categoriesId.find(item => item.name === category)?._id;
+      const categoryId = categoryList.find(item => item.name === category)?._id;
       setSelectedCategoryId(categoryId);
       const response = await axios.get(
         `${
@@ -84,7 +84,7 @@ function ResourceList({ setCategoriesId }) {
   return (
     <div className="flex w-screen h-screen">
       <CategoryBar
-        categories={categoriesId ? categoriesId.map(item => item.name) : []}
+        categories={categoryList ? categoryList.map(item => item.name) : []}
         activeCategory={category}
         onChangeCategory={handleCategoryChange}
       />
@@ -92,7 +92,6 @@ function ResourceList({ setCategoriesId }) {
         svgUrl={resourcesUrl}
         data={resourcesData}
         onImageSelect={handleImageSelect}
-        isAdmin={isAdmin}
         categoryName={category}
         fetchData={fetchData}
       />

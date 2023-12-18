@@ -2,18 +2,17 @@ import { useRef, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import axios from "axios";
-import UserContext from "../../../../contexts/UserContext";
+import CategoryContext from "../../../../contexts/CategoryContext";
 
 // eslint-disable-next-line react/prop-types
 function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
-  const user = useContext(UserContext);
+  const { categoryList } = useContext(CategoryContext);
   const navigate = useNavigate();
-  const { isAdmin, categoriesId } = user;
   const gridRef = useRef();
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState(null);
   const [currentId, setCurrentId] = useState(null);
-  const categoryId = categoriesId.find(item => item.name === categoryName)?._id;
+  const categoryId = categoryList.find(item => item.name === categoryName)?._id;
 
   function handleOpenModal(img, id) {
     setModalContent(img);
@@ -100,30 +99,28 @@ function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
                 // eslint-disable-next-line react/prop-types
                 onClick={() => handleOpenModal(url, data[index].id)}
               />
-              {isAdmin && (
-                <div className="absolute flex justify-between left-0 right-0 bottom-0 w-4/6 m-auto text-xs pb-2 text-stone-100 font-normal">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      // eslint-disable-next-line react/prop-types
-                      navigateToResourceVersionForm(data[index].id)
-                    }
-                    className="px-2 py-0.5 rounded-md bg-stone-800"
-                  >
-                    Update
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      // eslint-disable-next-line react/prop-types
-                      resourceDelete(data[index].id)
-                    }
-                    className="px-2 py-0.5 rounded-md bg-stone-800"
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
+              <div className="absolute flex justify-between left-0 right-0 bottom-0 w-4/6 m-auto text-xs pb-2 text-stone-100 font-normal">
+                <button
+                  type="button"
+                  onClick={() =>
+                    // eslint-disable-next-line react/prop-types
+                    navigateToResourceVersionForm(data[index].id)
+                  }
+                  className="px-2 py-0.5 rounded-md bg-stone-800"
+                >
+                  Update
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    // eslint-disable-next-line react/prop-types
+                    resourceDelete(data[index].id)
+                  }
+                  className="px-2 py-0.5 rounded-md bg-stone-800"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           );
         })}
