@@ -8,35 +8,44 @@ import UserContext from "../../../contexts/UserContext";
 import CategoryContext from "../../../contexts/CategoryContext";
 import { auth } from "../../../config/firebase-config";
 
+interface loginResponse {
+  isInitialUser: boolean;
+  result: string;
+}
+
 function Login() {
   const { setUserCredentials } = useContext(UserContext);
   const { setInitialCategoryList } = useContext(CategoryContext);
+
   const navigate = useNavigate();
 
-  async function handleGoogleLogin() {
+  async function handleGoogleLogin(): Promise<loginResponse> {
     try {
       const provider = new GoogleAuthProvider();
-      const data = await signInWithPopup(auth, provider);
+      const { user } = await signInWithPopup(auth, provider);
+      const idToken = await user.getIdToken();
 
-      setUserCredentials(data._tokenResponse, data.user.email);
+      setUserCredentials(idToken, user.email);
 
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/login`,
         {
-          email: data.user.email,
-          idToken: data._tokenResponse.idToken,
+          email: user.email,
+          idToken,
           login: true,
         }
       );
 
       return response.data;
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        throw new Error("Unauthorized: Please check your login details");
-      }
+      if (axios.isAxiosError(err)) {
+        if (err.response && err.response.status === 401) {
+          throw new Error("Unauthorized: Please check your login details");
+        }
 
-      if (err.response && err.response.status === 500) {
-        throw new Error("Server error: Please try again later");
+        if (err.response && err.response.status === 500) {
+          throw new Error("Server error: Please try again later");
+        }
       }
 
       throw new Error("An error occurred: Please try again");
@@ -67,8 +76,10 @@ function Login() {
 
       navigate("/resource-list/BrandLogo");
     } catch (err) {
-      toast.error(err.message);
-      navigate("/login");
+      if (axios.isAxiosError(err)) {
+        toast.error(err.message);
+        navigate("/login");
+      }
     }
   }
 
