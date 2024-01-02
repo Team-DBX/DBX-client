@@ -1,8 +1,31 @@
-import { useRef } from "react";
+import { useRef, ChangeEvent } from "react";
 
-// eslint-disable-next-line react/prop-types
-function FileInput({ mode, handleFileChange, logoImageByMode }) {
-  const fileInputRef = useRef(null);
+interface LogoImageByMode {
+  name: string;
+  detail: {
+    version: string;
+    uploadDate: Date;
+    email: string;
+    description: string | null;
+  };
+  files: string[] | null;
+}
+
+interface FileInputProps {
+  mode: string;
+  handleFileChange: (
+    event: ChangeEvent<HTMLInputElement>,
+    mode: string
+  ) => void;
+  logoImageByMode: LogoImageByMode;
+}
+
+function FileInput({
+  mode,
+  handleFileChange,
+  logoImageByMode,
+}: FileInputProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="flex col-span-3 mt-3">
@@ -21,15 +44,13 @@ function FileInput({ mode, handleFileChange, logoImageByMode }) {
             logoImageByMode ? `text-xs text-black` : `text-xs text-stone-400`
           }`}
         >
-          {/* eslint-disable react/prop-types */}
           {logoImageByMode
             ? logoImageByMode.name
             : "No files have been selected yet. *Please only upload SVG files!"}
-          {/* eslint-enable react/prop-types */}
         </div>
         <button
           type="button"
-          onClick={() => fileInputRef.current.click()}
+          onClick={() => fileInputRef.current?.click()}
           className="px-1 bg-stone-800 text-sm font-light text-stone-100"
         >
           Choose your file
