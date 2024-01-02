@@ -1,27 +1,60 @@
-import { useState, useContext } from "react";
+import { useState, useContext, ChangeEvent, FormEvent } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import FileInput from "../FileInput";
+import FileInput from "../FileInput/index";
 import UserContext from "../../../../contexts/UserContext";
 import InitialContext from "../../../../contexts/CategoryContext";
+
+interface FileData {
+  fileName: string | null;
+  svgFile: string | null;
+}
+
+interface PostData {
+  name: string;
+  detail: {
+    version: string;
+    uploadDate: string;
+    email: string | null;
+    description: string;
+  };
+  files: FileData[];
+}
+
+interface RequiredLogoDetails {
+  name: string;
+  description: string;
+  default: File | null;
+}
+
+interface LogoImagesByMode {
+  darkmode: File | null;
+  "1.5x": File | null;
+  "2x": File | null;
+  "3x": File | null;
+  "4x": File | null;
+}
 
 function ResourceForm() {
   const { userEmail } = useContext(UserContext);
   const { categoryList } = useContext(InitialContext);
   const navigate = useNavigate();
-  const brandLogoCategory = categoryList.find(
-    categories => categories.name === "BrandLogo"
+  const brandLogoCategory = categoryList?.find(
+    category => category.name === "BrandLogo"
   );
   const brandLogoCategoryId = brandLogoCategory ? brandLogoCategory._id : null;
-  const [previewSource, setPreviewSource] = useState(null);
-  const [requiredLogoDetails, setRequiredLogoDetails] = useState({
-    name: "",
-    description: "",
-    default: null,
-  });
-  const [logoImagesByMode, setLogoImagesByMode] = useState({
+  const [previewSource, setPreviewSource] = useState<
+    string | ArrayBuffer | null
+  >(null);
+  const [requiredLogoDetails, setRequiredLogoDetails] =
+    useState<RequiredLogoDetails>({
+      name: "",
+      description: "",
+      default: null,
+    });
+  const [logoImagesByMode, setLogoImagesByMode] = useState<LogoImagesByMode>({
     darkmode: null,
     "1.5x": null,
     "2x": null,
@@ -29,13 +62,15 @@ function ResourceForm() {
     "4x": null,
   });
 
-  function handleInputChange(event) {
+  function handleInputChange(
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
     const { name, value } = event.target;
 
     setRequiredLogoDetails(prevData => ({ ...prevData, [name]: value }));
   }
 
-  function onDrop(acceptedFiles) {
+  function onDrop(acceptedFiles: File[]) {
     const file = acceptedFiles[0];
 
     if (file && file.type !== "image/svg+xml") {
@@ -56,38 +91,51 @@ function ResourceForm() {
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  function handleFileChange(event, mode) {
-    if (event.target.files.length === 0) {
-      return;
+  function handleFileChange(
+    event: ChangeEvent<HTMLInputElement>,
+    mode: string
+  ) {
+    if (event.target.files) {
+      if (event.target.files.length === 0) {
+        return;
+      }
+
+      const file = event.target.files[0];
+
+      if (file && file.type !== "image/svg+xml") {
+        toast.error("Selected file is not SVG.\nPlease choose SVG file! :)");
+
+        return;
+      }
+
+      setLogoImagesByMode(prevFiles => ({ ...prevFiles, [mode]: file }));
     }
-
-    const file = event.target.files[0];
-
-    if (file && file.type !== "image/svg+xml") {
-      toast.error("Selected file is not SVG.\nPlease choose SVG file! :)");
-
-      return;
-    }
-
-    setLogoImagesByMode(prevFiles => ({ ...prevFiles, [mode]: file }));
   }
 
-  function readFileAsText(file) {
+  function readFileAsText(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
-      reader.onload = event => resolve(event.target.result);
+      reader.onload = event => {
+        const result = event?.target?.result;
+
+        if (typeof result === "string") {
+          resolve(result);
+        } else {
+          reject(new Error("File could not be read as text"));
+        }
+      };
       reader.onerror = error => reject(error);
       reader.readAsText(file);
     });
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const MODES = ["default", "darkmode", "1.5x", "2x", "3x", "4x"];
     const date = new Date().toString();
-    const postData = {
+    const postData: PostData = {
       name: `${requiredLogoDetails.name}`,
       detail: {
         version: "1.0.0",
@@ -108,7 +156,7 @@ function ResourceForm() {
     }
     // eslint-disable-next-line no-restricted-syntax
     for (const mode of MODES) {
-      const file = logoImagesByMode[mode];
+      const file = logoImagesByMode[mode as keyof LogoImagesByMode];
 
       if (file) {
         // eslint-disable-next-line no-await-in-loop
@@ -159,7 +207,7 @@ function ResourceForm() {
               className="border border-stone-800 rounded-md w-60 h-60"
             >
               <input {...getInputProps()} />
-              {previewSource && (
+              {typeof previewSource === "string" && (
                 <img
                   src={previewSource}
                   alt="chosen"
@@ -167,7 +215,6 @@ function ResourceForm() {
                 />
               )}
             </div>
-            {/* eslint-enable react/jsx-props-no-spreading */}
             <p className="text-xs text-stone-400">
               * Please set your brand signature logo.
             </p>
@@ -197,10 +244,9 @@ function ResourceForm() {
         <div className="mt-10">
           {Object.keys(logoImagesByMode).map(mode => (
             <FileInput
-              key={mode}
               mode={mode}
               handleFileChange={event => handleFileChange(event, mode)}
-              logoImageByMode={logoImagesByMode[mode]}
+              logoImageByMode={logoImagesByMode[mode as keyof LogoImagesByMode]}
             />
           ))}
         </div>
