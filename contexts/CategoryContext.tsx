@@ -7,7 +7,7 @@ import {
 } from "react";
 
 interface CategoryItem {
-  id: string;
+  _id: string;
   name: string;
 }
 
@@ -19,7 +19,10 @@ interface CategoryContextType {
 interface CategoryContextProviderProps {
   children: ReactNode;
 }
-const CategoryContext = createContext<CategoryContextType | null>(null);
+const CategoryContext = createContext<CategoryContextType>({
+  categoryList: [],
+  setInitialCategoryList: () => {},
+});
 
 export function CategoryContextProvider({
   children,

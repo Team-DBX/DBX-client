@@ -14,7 +14,13 @@ interface UserContextType {
   setCurCategoryId: (id: string) => void;
 }
 
-const UserContext = createContext<UserContextType | null>(null);
+const UserContext = createContext<UserContextType>({
+  userToken: null,
+  userEmail: null,
+  categoryId: null,
+  setUserCredentials: () => {},
+  setCurCategoryId: () => {},
+});
 
 interface UserContextProviderProps {
   children: ReactNode;
