@@ -1,4 +1,10 @@
-import { useState, createContext, ReactNode } from "react";
+import {
+  useState,
+  useMemo,
+  createContext,
+  ReactNode,
+  useCallback,
+} from "react";
 
 interface CategoryItem {
   id: string;
@@ -6,7 +12,8 @@ interface CategoryItem {
 }
 
 interface CategoryContextType {
-  categories: CategoryItem[];
+  categoryList: CategoryItem[] | null;
+  setInitialCategoryList: (data: CategoryItem[]) => void;
 }
 
 interface CategoryContextProviderProps {
@@ -17,17 +24,20 @@ const CategoryContext = createContext<CategoryContextType | null>(null);
 export function CategoryContextProvider({
   children,
 }: CategoryContextProviderProps) {
-  const [categoryList, setCategoryList] = useState<CategoryContextType | null>(
-    []
+  const [categoryList, setCategoryList] = useState<CategoryItem[] | null>([]);
+
+  const setInitialCategoryList = useCallback((data: CategoryItem[]) => {
+    setCategoryList(data);
+  }, []);
+  const value = useMemo(
+    () => ({
+      categoryList,
+      setInitialCategoryList,
+    }),
+    [categoryList, setInitialCategoryList]
   );
-
-  const setInitialCategoryList = (arr: CategoryContextType) => {
-    setCategoryList(arr);
-  };
-
   return (
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    <CategoryContext.Provider value={{ categoryList, setInitialCategoryList }}>
+    <CategoryContext.Provider value={value}>
       {children}
     </CategoryContext.Provider>
   );
