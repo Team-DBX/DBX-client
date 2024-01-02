@@ -25,7 +25,9 @@ function Login() {
       const { user } = await signInWithPopup(auth, provider);
       const idToken = await user.getIdToken();
 
-      setUserCredentials(idToken, user.email);
+      if (user.email) {
+        setUserCredentials(idToken, user.email);
+      }
 
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/login`,
@@ -61,7 +63,7 @@ function Login() {
           `${import.meta.env.VITE_SERVER_URL}/initialSetting`
         );
 
-        setInitialCategoryList(response.data);
+        setInitialCategoryList(response.data.categories);
         navigate("/initial-resource-form", { state: { isInitialUser: true } });
 
         return;
