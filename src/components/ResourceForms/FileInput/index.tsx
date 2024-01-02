@@ -1,14 +1,7 @@
 import { useRef, ChangeEvent } from "react";
 
 interface LogoImageByMode {
-  name: string;
-  detail: {
-    version: string;
-    uploadDate: Date;
-    email: string;
-    description: string | null;
-  };
-  files: string[] | null;
+  name: string | null;
 }
 
 interface FileInputProps {
@@ -17,7 +10,7 @@ interface FileInputProps {
     event: ChangeEvent<HTMLInputElement>,
     mode: string
   ) => void;
-  logoImageByMode: LogoImageByMode;
+  logoImageByMode: LogoImageByMode | null;
 }
 
 function FileInput({
