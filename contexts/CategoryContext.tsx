@@ -19,6 +19,7 @@ interface CategoryContextType {
 interface CategoryContextProviderProps {
   children: ReactNode;
 }
+
 const CategoryContext = createContext<CategoryContextType>({
   categoryList: [],
   setInitialCategoryList: () => {},
