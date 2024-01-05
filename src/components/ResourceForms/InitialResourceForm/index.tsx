@@ -23,7 +23,7 @@ interface PostData {
   files: FileData[];
 }
 
-interface RequiredLogoDetails {
+interface InitialRequiredLogoDetails {
   name: string;
   description: string;
   default: File | null;
@@ -49,7 +49,7 @@ function ResourceForm() {
     string | ArrayBuffer | null
   >(null);
   const [requiredLogoDetails, setRequiredLogoDetails] =
-    useState<RequiredLogoDetails>({
+    useState<InitialRequiredLogoDetails>({
       name: "",
       description: "",
       default: null,
@@ -122,9 +122,10 @@ function ResourceForm() {
         if (typeof result === "string") {
           resolve(result);
         } else {
-          reject(new Error("File could not be read as text"));
+          reject(new Error("File could not be read"));
         }
       };
+
       reader.onerror = error => reject(error);
       reader.readAsText(file);
     });
