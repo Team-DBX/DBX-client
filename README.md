@@ -1,5 +1,5 @@
 <div style="display: flex; justify-content: center;">
-  <img style="width: 500px; " alt="DBX Logo" src="https://github.com/Team-DBX/DBX-client/assets/93499071/b73d667c-b08e-4eb4-ba23-2b0c1386e469">
+  <img style="width: 500px; " alt="DBX Logo" src="https://github.com/Team-DBX/DBX-client/assets/93499071/1adba02c-75d4-4513-bf7c-ffe8ffc928b8">
 </div>
 <div style="text-align: center;">Developer와 Designer가 협업할 수 있는 Brand Experience <strong>리소스 관리 툴</strong> DBX입니다.</div>
 <br />
