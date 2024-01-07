@@ -1,10 +1,18 @@
-// eslint-disable-next-line react/prop-types
-function CategoryBar({ categories, activeCategory, onChangeCategory }) {
+interface CategoryBarProps {
+  categories: string[];
+  activeCategory: string;
+  onChangeCategory: (category: string) => void;
+}
+
+function CategoryBar({
+  categories,
+  activeCategory,
+  onChangeCategory,
+}: CategoryBarProps) {
   return (
     <div className="grid grid-rows-5 grid-flow-col pl-6 pr-6 w-1/5 h-full">
       <div className="row-start-2 row-span-2 border-t-2 border-stone-400">
         <ul className="mt-6">
-          {/* eslint-disable-next-line react/prop-types */}
           {categories.map(category => (
             <li key={category} className="hover:bg-stone-200">
               <button
