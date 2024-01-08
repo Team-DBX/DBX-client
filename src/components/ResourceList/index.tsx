@@ -9,22 +9,26 @@ import UserContext from "../../../contexts/UserContext";
 import useGetData from "../../../hooks/useGetData";
 import CategoryContext from "../../../contexts/CategoryContext";
 
-// eslint-disable-next-line react/prop-types
+interface ResponseItem {
+  id: string;
+  svgUrl: string;
+}
+
 function ResourceList() {
   const { userEmail } = useContext(UserContext);
   const { categoryList, setInitialCategoryList } = useContext(CategoryContext);
   const { category } = useParams();
-  const [resourcesUrl, setResourcesUrl] = useState([]);
+  const [resourcesUrl, setResourcesUrl] = useState<string[]>([]);
   const [resourcesData, setResourcesData] = useState([]);
   const [selectedImageData, setSelectedImageData] = useState(null);
-  const [selectedResourceId, setSelectedResourceId] = useState(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [selectedResourceId, setSelectedResourceId] = useState<string>("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const navigate = useNavigate();
   const { value, fetchError } = useGetData(
     `${import.meta.env.VITE_SERVER_URL}/categories`
   );
 
-  if (value.data?.categories) {
+  if (value && value.data?.categories) {
     setInitialCategoryList(value.data.categories);
   }
 
@@ -34,12 +38,18 @@ function ResourceList() {
 
   const fetchData = useCallback(async () => {
     try {
-      const categoryId = categoryList.find(item => item.name === category)?._id;
+      const categoryId = categoryList?.find(item => item.name === category)
+        ?._id;
       const response = await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/categories/${categoryId}`
       );
-      setResourcesUrl(response.data.categoryList.map(item => item.svgUrl));
-      setResourcesData(response.data.categoryList);
+
+      if (response.data.categoryList) {
+        setResourcesUrl(
+          response.data.categoryList.map((item: ResponseItem) => item.svgUrl)
+        );
+        setResourcesData(response.data.categoryList);
+      }
     } catch (error) {
       toast.error(
         "There was an issue loading your data. Please try again later."
@@ -48,18 +58,17 @@ function ResourceList() {
   }, [category, categoryList]);
 
   useEffect(() => {
-    if (categoryList.length) {
+    if (categoryList && categoryList.length) {
       fetchData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, categoryList]);
+  }, [category, categoryList, fetchData]);
 
-  const handleCategoryChange = newCategory => {
+  const handleCategoryChange = (newCategory: string) => {
     setSelectedCategoryId(newCategory);
     navigate(`/resource-list/${newCategory}`);
   };
 
-  const handleImageSelect = async imageId => {
+  const handleImageSelect = async (imageId: string) => {
     setSelectedResourceId(imageId);
 
     if (imageId === null) {
@@ -69,14 +78,20 @@ function ResourceList() {
     }
 
     try {
-      const categoryId = categoryList.find(item => item.name === category)?._id;
-      setSelectedCategoryId(categoryId);
-      const response = await axios.get(
-        `${
-          import.meta.env.VITE_SERVER_URL
-        }/categories/${categoryId}/resources/${imageId}`
-      );
-      setSelectedImageData(response.data);
+      const categoryItem = categoryList?.find(item => item.name === category);
+      if (categoryItem) {
+        const categoryId = categoryItem._id;
+        setSelectedCategoryId(categoryId);
+
+        const response = await axios.get(
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/categories/${categoryId}/resources/${imageId}`
+        );
+        setSelectedImageData(response.data);
+      } else {
+        Error("Category Not Found");
+      }
     } catch (error) {
       toast.error(
         "There was an issue loading your data. Please try again later."
@@ -88,7 +103,7 @@ function ResourceList() {
     <div className="flex w-screen h-screen">
       <CategoryBar
         categories={categoryList ? categoryList.map(item => item.name) : []}
-        activeCategory={category}
+        activeCategory={category || "BrandLogo"}
         onChangeCategory={handleCategoryChange}
       />
       <ImageGrid
