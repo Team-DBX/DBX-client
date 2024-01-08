@@ -3,8 +3,31 @@ import { toast } from "react-hot-toast";
 import { getAuth, signOut } from "firebase/auth";
 import CopyLinkButton from "./CopyLinkButton";
 
-// eslint-disable-next-line react/prop-types
-function ControlPanel({ email, resourceData, categoryId, resourceId }) {
+interface ControlPanelProps {
+  email: string | null;
+  resourceData: {
+    categoryName: string;
+    authorName: string;
+    resourceName: string;
+    uploadDate: string;
+    version: string;
+    files: Array<{
+      _id: string;
+      fileName: string;
+      svgUrl: string;
+      pngUrl: string;
+    }>;
+  } | null;
+  categoryId: string;
+  resourceId: string;
+}
+
+function ControlPanel({
+  email,
+  resourceData,
+  categoryId,
+  resourceId,
+}: ControlPanelProps) {
   const providedUrl = `${
     import.meta.env.VITE_SERVER_URL
   }/dbx/categories/${categoryId}/resources/${resourceId}`;
@@ -41,11 +64,11 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
       </div>
     );
   }
-  // eslint-disable-next-line react/prop-types
+
   const { categoryName, authorName, resourceName, uploadDate, version, files } =
     resourceData;
 
-  function handleDownload(fileUrl) {
+  function handleDownload(fileUrl: string) {
     const url = new URL(fileUrl);
     const fileKey = decodeURIComponent(url.pathname.substring(1));
     const s3 = new S3Client({
@@ -60,7 +83,7 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
       Key: fileKey,
     };
 
-    function downloadBlob(blob, name) {
+    function downloadBlob(blob: Blob, name: string) {
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
@@ -80,12 +103,15 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
       try {
         const command = new GetObjectCommand(params);
         const data = await s3.send(command);
-        const dataBody = await data.Body.transformToByteArray();
-        const fileBlob = new Blob([dataBody], {
-          type: "application/octet-stream",
-        });
+        const dataBody = await data.Body?.transformToByteArray();
 
-        downloadBlob(fileBlob, url.pathname.split("/").pop());
+        if (dataBody && url.pathname) {
+          const fileBlob = new Blob([dataBody], {
+            type: "application/octet-stream",
+          });
+
+          downloadBlob(fileBlob, url.pathname.split("/").pop() || "downLoad");
+        }
       } catch (err) {
         toast.error("File download failed.");
       }
@@ -116,7 +142,6 @@ function ControlPanel({ email, resourceData, categoryId, resourceId }) {
         </div>
         <h3 className="text-lg font-bold mt-4">Files:</h3>
         <ul>
-          {/* eslint-disable-next-line react/prop-types */}
           {files.map(file => (
             <li key={file._id} className=" p-3 bg-stone-100 mb-5 rounded-xl">
               <h4 className="mb-3 px-3 bg-stone-400 inline-block text-stone-100 text-md font-semibold rounded-full">{`${file.fileName}`}</h4>
