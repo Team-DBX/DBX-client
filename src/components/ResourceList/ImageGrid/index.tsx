@@ -4,17 +4,36 @@ import { createPortal } from "react-dom";
 import axios from "axios";
 import CategoryContext from "../../../../contexts/CategoryContext";
 
-// eslint-disable-next-line react/prop-types
-function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
+interface ResponseItem {
+  id: string;
+  svgUrl: string;
+}
+
+interface ImageGridProps {
+  svgUrl: string[];
+  data: ResponseItem[];
+  onImageSelect: (imageId: string) => void;
+  categoryName: string | undefined;
+  fetchData: () => void;
+}
+
+function ImageGrid({
+  svgUrl,
+  data,
+  onImageSelect,
+  categoryName,
+  fetchData,
+}: ImageGridProps) {
   const { categoryList } = useContext(CategoryContext);
   const navigate = useNavigate();
-  const gridRef = useRef();
+  const gridRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalContent, setModalContent] = useState(null);
-  const [currentId, setCurrentId] = useState(null);
-  const categoryId = categoryList.find(item => item.name === categoryName)?._id;
+  const [modalContent, setModalContent] = useState<string>("");
+  const [currentId, setCurrentId] = useState<string>("");
+  const categoryId = categoryList?.find(item => item.name === categoryName)
+    ?._id;
 
-  function handleOpenModal(img, id) {
+  function handleOpenModal(img: string, id: string) {
     setModalContent(img);
     setShowModal(true);
     onImageSelect(id);
@@ -23,10 +42,10 @@ function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
 
   function handleCloseModal() {
     setShowModal(false);
-    onImageSelect(null);
+    onImageSelect("");
   }
 
-  function navigateToResourceVersionForm(id) {
+  function navigateToResourceVersionForm(id: string) {
     navigate("/new-resource-version-form", {
       state: { resourceId: id, categoryName },
     });
@@ -44,7 +63,7 @@ function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
     });
   }
 
-  async function resourceDelete(id) {
+  async function resourceDelete(id: string) {
     const response = await axios.delete(
       `${
         import.meta.env.VITE_SERVER_URL
@@ -72,10 +91,7 @@ function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
 
               <button
                 type="button"
-                onClick={() =>
-                  // eslint-disable-next-line react/prop-types
-                  navigateToResourceVersions()
-                }
+                onClick={() => navigateToResourceVersions()}
                 className="absolute right-0 bottom-0 m-5 py-0.5 px-3 bg-stone-800 rounded-full text-sm text-stone-100 font-semibold"
               >
                 Previous version &gt;
@@ -83,13 +99,18 @@ function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
               <img src={modalContent} alt="" />
             </div>
           </div>,
-          gridRef.current
+          gridRef.current!
         )}
       <div className="grid grid-cols-4 gap-4">
-        {/* eslint-disable-next-line react/prop-types, array-callback-return */}
         {svgUrl.map((url, index) => {
           // eslint-disable-next-line no-useless-escape
-          const key = url.match(/\"(.+?)\"/)[1];
+          const match = url.match(/\"(.+?)\"/);
+
+          if (!match) {
+            return null;
+          }
+
+          const key = match[1];
 
           return (
             <div key={key} className="relative bg-stone-100 rounded-xl">
@@ -102,20 +123,14 @@ function ImageGrid({ svgUrl, data, onImageSelect, categoryName, fetchData }) {
               <div className="absolute flex justify-between left-0 right-0 bottom-0 w-4/6 m-auto text-xs pb-2 text-stone-100 font-normal">
                 <button
                   type="button"
-                  onClick={() =>
-                    // eslint-disable-next-line react/prop-types
-                    navigateToResourceVersionForm(data[index].id)
-                  }
+                  onClick={() => navigateToResourceVersionForm(data[index].id)}
                   className="px-2 py-0.5 rounded-md bg-stone-800"
                 >
                   Update
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    // eslint-disable-next-line react/prop-types
-                    resourceDelete(data[index].id)
-                  }
+                  onClick={() => resourceDelete(data[index].id)}
                   className="px-2 py-0.5 rounded-md bg-stone-800"
                 >
                   Delete
