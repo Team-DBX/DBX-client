@@ -6,7 +6,7 @@ import "./main.css";
 import { UserContextProvider } from "../contexts/UserContext";
 import { CategoryContextProvider } from "../contexts/CategoryContext";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <BrowserRouter>
       <UserContextProvider>
