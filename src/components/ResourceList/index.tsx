@@ -9,7 +9,7 @@ import UserContext from "../../../contexts/UserContext";
 import useGetData from "../../../hooks/useGetData";
 import CategoryContext from "../../../contexts/CategoryContext";
 
-interface ResponseItem {
+interface ResponseCategoryItem {
   id: string;
   svgUrl: string;
 }
@@ -46,7 +46,9 @@ function ResourceList() {
 
       if (response.data.categoryList) {
         setResourcesUrl(
-          response.data.categoryList.map((item: ResponseItem) => item.svgUrl)
+          response.data.categoryList.map(
+            (item: ResponseCategoryItem) => item.svgUrl
+          )
         );
         setResourcesData(response.data.categoryList);
       }
@@ -71,7 +73,7 @@ function ResourceList() {
   const handleImageSelect = async (imageId: string) => {
     setSelectedResourceId(imageId);
 
-    if (imageId === null) {
+    if (imageId === "") {
       setSelectedImageData(null);
 
       return;
