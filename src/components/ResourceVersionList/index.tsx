@@ -3,34 +3,60 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import CategoryContext from "../../../contexts/CategoryContext";
 
+interface VersionDetail {
+  version: string;
+  uploadDate: string;
+  author: string;
+  description: string;
+}
+
+interface File {
+  _id: string;
+  fileName: string;
+  pngUrl: string;
+  svgUrl: string;
+}
+
+interface Version {
+  _id: string;
+  detail: VersionDetail;
+  name: string;
+  categoryId: string;
+  files: File[];
+  __v: number;
+}
+
 function ResourceVersionList() {
   const { categoryList } = useContext(CategoryContext);
   const location = useLocation();
   const { categoryName } = location.state;
   const { resourceId } = location.state;
-  const categoryId = categoryList.find(item => item.name === categoryName)._id;
-  const [versionData, setVersionData] = useState([]);
+  const categoryId = categoryList?.find(item => item.name === categoryName)
+    ?._id;
+  const [versionData, setVersionData] = useState<Version[]>([]);
 
-  async function fetchData() {
-    const response = await axios.get(
-      `${
-        import.meta.env.VITE_SERVER_URL
-      }/categories/${categoryId}/resources/${resourceId}/versions`
-    );
-
-    setVersionData([...response.data]);
-  }
-
-  function formatDate(dateString) {
-    const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+  function formatDate(dateString: string) {
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    };
 
     return new Date(dateString).toLocaleDateString(undefined, options);
   }
 
   useEffect(() => {
+    async function fetchData() {
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_SERVER_URL
+        }/categories/${categoryId}/resources/${resourceId}/versions`
+      );
+
+      setVersionData([...response.data]);
+    }
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [categoryId, resourceId]);
 
   return (
     <div className="pt-10 w-3/5 h-screen overflow-auto drop-shadow-lg">
