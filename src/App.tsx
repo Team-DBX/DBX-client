@@ -13,11 +13,12 @@ import ResourceVersionList from "./components/ResourceVersionList";
 
 function App() {
   const { userEmail, setUserCredentials } = useContext(UserContext);
-  const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    auth.onAuthStateChanged(user => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    auth.onAuthStateChanged((user: any) => {
       if (user) {
         setIsLoggedIn(true);
         setUserCredentials(user.accessToken, user.email);
