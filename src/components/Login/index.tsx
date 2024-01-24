@@ -96,16 +96,6 @@ function Login() {
         >
           Login with Google
         </button>
-        <button
-          type="button"
-          onClick={handleLogin}
-          className="block mx-auto mb-4 border border-black w-52 rounded-md h-9 text-1xl"
-        >
-          Guest Mode
-        </button>
-        <p className="text-xs text-stone-400">
-          Not your computer? Use Guest mode to sign in privately.
-        </p>
       </div>
     </div>
   );

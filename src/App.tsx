@@ -10,11 +10,24 @@ import { auth } from "../config/firebase-config";
 import ResourceVersionForm from "./components/ResourceForms/ResourceVersionForm";
 import ResourceForm from "./components/ResourceForms/ResourceForm";
 import ResourceVersionList from "./components/ResourceVersionList";
+import MobileBlock from "./components/MobileBlock";
 
 function App() {
   const { userEmail, setUserCredentials } = useContext(UserContext);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    function checkMobile() {
+      return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    }
+
+    if (checkMobile()) {
+      setIsMobile(true);
+      navigate("/mobileBlock");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,14 +35,23 @@ function App() {
       if (user) {
         setIsLoggedIn(true);
         setUserCredentials(user.accessToken, user.email);
+
         navigate("/resource-list/BrandLogo");
       } else {
         setIsLoggedIn(false);
+
         navigate("/login");
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, setUserCredentials]);
+
+  const getRouteElement = () => {
+    if (userEmail) {
+      return <Navigate to="/resource-list/BrandLogo" />;
+    }
+    return <Navigate to="/login" />;
+  };
 
   return (
     <div className="relative bg-gradient-to-b from-stone-300 via-stone-300 to-black">
@@ -39,13 +61,10 @@ function App() {
           <Route
             path="/"
             element={
-              userEmail ? (
-                <Navigate to="/resource-list/BrandLogo" />
-              ) : (
-                <Navigate to="/login" />
-              )
+              isMobile ? <Navigate to="/mobileBlock" /> : getRouteElement()
             }
           />
+          <Route path="/mobileBlock" element={<MobileBlock />} />
           <Route
             path="/initial-resource-form"
             element={<InitialResourceForm />}
